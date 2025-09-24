@@ -1,0 +1,102 @@
+{% load static %}
+{% block content %}
+
+<style>
+    #all {
+        background-image: url("{% static 'images/greenleaf.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        height: 100vh;
+        display: flex;
+        /* align-items: center; */
+        justify-content: center;
+        text-align: center;
+        color: white;
+
+    }
+
+    #topicInput {
+
+        font-family: Georgia, serif;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+        }
+</style>
+
+<title>AI Blog Generator</title>
+<div id="all" class="w-100" style="position: fixed;">
+    <div class="row w-75">
+        <div class="col-12" style="top: 10;">
+            <div class="w-100">
+                <h1 class="mb-4 mt-4" >AI Content Generator for Blogs</h1>
+                <form id="topicForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-10">
+                            <label for="topicInput" class="form-label">Enter Blog Topic</label>
+                            <input type="text" class="form-control" name="topicInput" id="topicInput"
+                                placeholder="Type your topic here" required />
+                        </div>
+                        <div class="col-md-2 ">
+                            <button type="submit" class="btn btn-primary form-control fw-bold">Generate Article</button>
+
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="container ">
+
+                <div class="mt-5 text-white fw-bold" id="result" style="display:none;">
+                    <h5>Generated Article:</h5>
+                    <div class="hide-scrollbar" style="overflow-y: scroll;" id="articleContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <br>
+
+</div>
+
+<link rel="stylesheet" href="static/css/bootstrap.min.css">
+<script src="static/jquery/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#topicForm').on('submit', function (e) {
+            e.preventDefault(); // Prevent form from reloading the page
+
+            const topic = $('#topicInput').val().trim();
+            if (!topic) {
+                alert('Please enter a topic');
+                return;
+            }
+
+            // Show loading indicator
+            $('#articleContent').html('<em>Generating article... please wait.</em>');
+            $('#result').show();
+
+            $.ajax({
+                url: "{% url 'home' %}",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ topic: topic }),
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token for security
+                },
+                success: function (response) {
+                    $('#articleContent').text(response.article);
+                },
+                error: function (xhr) {
+                    let errMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Something went wrong.';
+                    $('#articleContent').html('<span class="text-danger">' + errMsg + '</span>');
+                }
+            });
+        });
+    });
+</script>
+{% endblock content %}
